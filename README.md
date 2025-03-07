@@ -111,7 +111,7 @@ License
 
 Contact
 -------
-For questions or support, please contact [Your Name] at [Your Email Address].
+For questions or support, please contact Fawwaz Bin Tasneem at tasneemfawwaz@gmail.com.
 
 ---
 
