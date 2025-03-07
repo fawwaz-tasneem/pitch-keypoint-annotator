@@ -140,7 +140,7 @@ class AnnotationTool(QtWidgets.QMainWindow):
         if text.isdigit():
             self.shortcut_buffer += text
             self.shortcut_label.setText(f"Shortcut: {self.shortcut_buffer}")
-        elif event.key() == QtCore.Qt.Key_Backspace:
+        elif event.key() == QtCore.Qt.Key.Key_Backspace:
             self.shortcut_buffer = self.shortcut_buffer[:-1]
             self.shortcut_label.setText(f"Shortcut: {self.shortcut_buffer}")
         else:
