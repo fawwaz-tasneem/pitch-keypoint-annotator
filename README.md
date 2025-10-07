@@ -4,6 +4,7 @@ Pitch Keypoint Annotation Tool
 Overview
 --------
 The Pitch Keypoint Annotation Tool is a Python-based application that allows users to annotate keypoints on video frames of a football pitch. Users can label 35 predefined keypoints, navigate between frames, and save annotations in a JSON format. The tool also features an optical flow-based predictor (using the Lucas-Kanade algorithm) to automatically estimate keypoint positions in the next frame, which can then be manually adjusted if needed.
+![Snapshot of the tool](images/example_usage.png)
 
 Features
 --------
