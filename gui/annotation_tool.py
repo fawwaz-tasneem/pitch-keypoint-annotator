@@ -5,6 +5,11 @@ from .annotation_scene import AnnotationScene
 from .pitch_reference import PitchReference
 from utils.frame_extractor import extract_frames
 from data.keypoints_data import build_keypoint_dict
+from utils.keypoint_predictor import (
+    convert_annotations_to_array,
+    predict_keypoints,
+    update_annotations_with_predictions,
+)
 
 class AnnotationTool(QtWidgets.QMainWindow):
     def __init__(self):
@@ -102,6 +107,11 @@ class AnnotationTool(QtWidgets.QMainWindow):
         next_frame_action = QtGui.QAction("Next Frame", self)
         next_frame_action.triggered.connect(self.next_frame)
         nav_menu.addAction(next_frame_action)
+
+        tools_menu = menu.addMenu("Tools")
+        predict_action = QtGui.QAction("Predict Next Frame Keypoints", self)
+        predict_action.triggered.connect(self.predict_next_frame_keypoints)
+        tools_menu.addAction(predict_action)
         
         keypoint_menu = menu.addMenu("Keypoints")
         for kp_name, info in self.keypoints_dict.items():
@@ -123,6 +133,10 @@ class AnnotationTool(QtWidgets.QMainWindow):
         next_btn.triggered.connect(self.next_frame)
         toolbar.addAction(next_btn)
         
+        predict_btn = QtGui.QAction("Predict Next Frame", self)
+        predict_btn.triggered.connect(self.predict_next_frame_keypoints)
+        toolbar.addAction(predict_btn)
+
         load_session_btn = QtGui.QAction("Load Session", self)
         load_session_btn.triggered.connect(self.load_session)
         toolbar.addAction(load_session_btn)
@@ -145,6 +159,53 @@ class AnnotationTool(QtWidgets.QMainWindow):
             self.shortcut_label.setText(f"Shortcut: {self.shortcut_buffer}")
         else:
             super().keyPressEvent(event)
+
+    def predict_next_frame_keypoints(self):
+        """
+        Predict keypoints for the next frame using optical flow (Lucas–Kanade).
+        Loads frames via OpenCV in grayscale to avoid QImage conversion pitfalls.
+        """
+        # Ensure next frame exists
+        self.save_current_annotations()
+        if not self.frames or self.current_frame_index >= len(self.frames) - 1:
+            self.statusBar().showMessage("No next frame available for prediction.")
+            return
+
+        current_path = self.frames[self.current_frame_index]
+        next_path = self.frames[self.current_frame_index + 1]
+
+        try:
+            import cv2  # lazy import to avoid startup crashes if OpenCV is misinstalled
+        except Exception as e:
+            QtWidgets.QMessageBox.critical(self, "OpenCV Error", f"Failed to import OpenCV: {e}")
+            return
+
+        current_img = cv2.imread(current_path, cv2.IMREAD_GRAYSCALE)
+        next_img = cv2.imread(next_path, cv2.IMREAD_GRAYSCALE)
+        if current_img is None or next_img is None:
+            self.statusBar().showMessage("Failed to load frames for prediction.")
+            return
+
+        # Build previous points array from current frame's annotations
+        current_name = os.path.basename(current_path)
+        current_annotations = self.session_annotations.get(current_name, {})
+        keypoint_names = list(self.keypoints_dict.keys())
+        prev_points = convert_annotations_to_array(current_annotations, keypoint_names)
+
+        try:
+            predicted_points, status = predict_keypoints(current_img, next_img, prev_points)
+        except Exception as e:
+            self.statusBar().showMessage(f"Prediction failed: {e}")
+            return
+
+        # Merge predictions into annotation format and move to next frame
+        predicted_annotations = update_annotations_with_predictions(keypoint_names, predicted_points, status)
+        next_name = os.path.basename(next_path)
+        self.session_annotations[next_name] = predicted_annotations
+
+        self.current_frame_index += 1
+        self.load_frame()
+        self.statusBar().showMessage("Predicted keypoints populated for next frame.")
 
     def space_pressed(self):
         """
