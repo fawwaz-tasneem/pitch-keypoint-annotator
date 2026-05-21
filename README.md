@@ -113,7 +113,3 @@ License
 Contact
 -------
 For questions or support, please contact Fawwaz Bin Tasneem at tasneemfawwaz@gmail.com.
-
----
-
-This README provides an overview of the project, installation instructions, usage details, and a breakdown of the code structure, making it easy for any user or developer to understand and work with the project.
