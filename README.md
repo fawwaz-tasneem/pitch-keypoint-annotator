@@ -110,8 +110,7 @@ Troubleshooting
 
 License
 -------
-(Include license details if applicable, e.g., MIT License.)
-
+MIT License
 Contact
 -------
 For questions or support, please contact Fawwaz Bin Tasneem at tasneemfawwaz@gmail.com.
